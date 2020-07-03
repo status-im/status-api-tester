@@ -12,6 +12,14 @@ async function sendToPublicChat(topic, message) {
   }
 }
 
+function timeout(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+async function sleep(fn, ...args) {
+  await timeout(3000);
+  return fn(...args);
+}
+
 const SendMessage = () => (
   <div>
     <h2>Send to public chat</h2>
@@ -42,9 +50,10 @@ function StatusApi() {
   const [account, setAccount] = useState()
   const [isStatus, setIsStatus] = useState(false)
   const [contactCode, setContactCode] = useState()
+  const [messages, setChatMessages] = useState([])
 
   useEffect(() => {
-      setIsStatus(!!window.ethereum.isStatus)
+      setIsStatus(window && !!window.ethereum && !!window.ethereum.isStatus)
   }, [account])
 
   async function enableEthereum() {
@@ -66,13 +75,19 @@ function StatusApi() {
     }
   }
 
-  async function sendToPublicChat(topic = 'testroom', message = 'test') {
+  async function getChatMessages() {
+    const { getChatMessages } = window.ethereum.status
+    let responses = []
+
     try {
-      const res = await window.ethereum.status.sendToPublicChat('testroom', 'testing')
-      console.log({res})
+      const res = await getChatMessages()
+      responses.push(res)
+      console.log('res', res)
     } catch (e) {
-      console.error('send to public chat', {e})
+      console.error('Contct code :', {e})
     }
+    setChatMessages(responses)
+    console.log({responses})
   }
 
   return (
@@ -85,6 +100,7 @@ function StatusApi() {
       <Button onClick={getContactCode}>Get Contact Code</Button>
       {contactCode && <div>{contactCode}</div>}
       <SendMessage />
+      <Button onClick={() => getChatMessages()}>Get Chat Messages</Button>
     </Fragment>
   )
 }
