@@ -12,6 +12,15 @@ async function sendToPublicChat(topic, message) {
   }
 }
 
+async function gotoPublicChat(topic) {
+  try {
+    const res = window.ethereum.status.gotoPublicChat(topic)
+    return res
+  } catch(e) {
+    console.error('send to public chat', {e})
+  }
+}
+
 function timeout(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -19,6 +28,30 @@ async function sleep(fn, ...args) {
   await timeout(3000);
   return fn(...args);
 }
+
+const GotoChat = () => (
+  <div>
+    <h2>Go to public chat</h2>
+    <Formik
+      initialValues={{ topic: 'test-room' }}
+      onSubmit={async (values, { setSubmitting }) => {
+        const { topic } = values;
+        const res = gotoPublicChat(topic)
+        console.log({res})
+      }}
+    >
+      {({ isSubmitting }) => (
+        <Form>
+          <Field type="text" name="topic" />
+          <ErrorMessage name="topic" component="div" />
+          <Button type="submit" disabled={isSubmitting}>
+            Send
+          </Button>
+        </Form>
+      )}
+    </Formik>
+  </div>
+);
 
 const SendMessage = () => (
   <div>
@@ -99,6 +132,7 @@ function StatusApi() {
       <h3>Get contact code</h3>
       <Button onClick={getContactCode}>Get Contact Code</Button>
       {contactCode && <div>{contactCode}</div>}
+      <GotoChat />
       <SendMessage />
       <Button onClick={() => getChatMessages()}>Get Chat Messages</Button>
     </Fragment>
